@@ -1,0 +1,2222 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX HANGAR — Элитная рулетка авто и авиации</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-obsidian: #07090e;
+      --bg-carbon: rgba(14, 18, 28, 0.78);
+      --border-glass: rgba(255, 255, 255, 0.09);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-obsidian);
+      background-image:
+        radial-gradient(circle at 14% 10%, rgba(14, 165, 233, 0.13), transparent 34%),
+        radial-gradient(circle at 86% 14%, rgba(168, 85, 247, 0.12), transparent 36%),
+        radial-gradient(circle at 50% 94%, rgba(245, 158, 11, 0.09), transparent 42%),
+        linear-gradient(180deg, #07090e 0%, #0b0f19 100%);
+      color: #f8fafc;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .glass-panel {
+      background: var(--bg-carbon);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    }
+
+    .roulette-viewport {
+      position: relative;
+      overflow: hidden;
+      mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    }
+
+    .roulette-track {
+      display: flex;
+      gap: 14px;
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+    }
+
+    .roulette-card {
+      flex: 0 0 232px;
+      height: 214px;
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(170deg, rgba(22, 28, 42, 0.96), rgba(9, 12, 20, 0.99));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.38s ease;
+    }
+
+    .roulette-card.winner-highlight {
+      transform: scale(1.055);
+      z-index: 12;
+    }
+
+    .center-needle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 3px;
+      transform: translateX(-50%);
+      background: linear-gradient(to bottom, #38bdf8, #f59e0b, #f43f5e);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.9), 0 0 40px rgba(56, 189, 248, 0.6);
+      z-index: 25;
+      pointer-events: none;
+      transition: transform 0.065s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .center-needle.tick {
+      transform: translateX(-50%) scaleY(1.03) scaleX(1.75);
+    }
+
+    .center-needle::before,
+    .center-needle::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 9px solid transparent;
+      border-right: 9px solid transparent;
+    }
+
+    .center-needle::before {
+      top: 0;
+      border-top: 11px solid #f8fafc;
+    }
+
+    .center-needle::after {
+      bottom: 0;
+      border-bottom: 11px solid #f8fafc;
+    }
+
+    @keyframes pulseTarget {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.65); }
+      45% { transform: scale(1.07); box-shadow: 0 0 26px 6px rgba(56, 189, 248, 0.45); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+
+    .target-pulse {
+      animation: pulseTarget 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.88) translateY(16px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .animate-modal-pop {
+      animation: modalPop 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .xp-bar-fill {
+      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(7, 9, 14, 0.65);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.25);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.45);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- Hardware-Accelerated Overlay Layer for Flying Cards & XP Orbs -->
+  <div id="fx-layer" class="fixed inset-0 pointer-events-none z-[120]"></div>
+
+  <!-- Toast Notification Banner -->
+  <div id="toast-banner" class="fixed bottom-5 right-5 z-[110] hidden items-center gap-3 px-4 py-3 rounded-2xl glass-panel border border-sky-400/40 text-xs font-bold text-white shadow-2xl">
+    <span class="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping"></span>
+    <span id="toast-text">Уведомление</span>
+  </div>
+
+  <!-- Guest Login / Profile Switch Modal -->
+  <div id="guest-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-7 animate-modal-pop border border-white/15">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-black tracking-tight">APEX HANGAR</h2>
+          <p class="text-xs text-slate-400">Авторизация гостя в закрытом ангаре</p>
+        </div>
+      </div>
+
+      <p class="text-sm text-slate-300 mb-5 leading-relaxed">
+        Введите свой никнейм. Ваш уровень, опыт, коллекция техники и место в живом рейтинге сохраняются в браузере.
+      </p>
+
+      <form id="guest-form" class="space-y-4">
+        <div>
+          <label for="nickname-input" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+            Никнейм игрока
+          </label>
+          <input
+            id="nickname-input"
+            type="text"
+            maxlength="22"
+            required
+            placeholder="Например: ApexDriver"
+            class="w-full px-4 py-3.5 rounded-2xl bg-slate-950/90 border border-white/15 text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 transition"
+          />
+        </div>
+
+        <div id="saved-profiles-box" class="hidden space-y-1.5">
+          <div class="text-[11px] font-semibold text-slate-400">Сохраненные профили:</div>
+          <div id="saved-profiles-list" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-1">
+          <button
+            type="button"
+            id="random-nick-btn"
+            class="px-3.5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300 border border-white/10 transition cursor-pointer"
+          >
+            Случайный ник
+          </button>
+          <button
+            type="submit"
+            class="flex-1 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:brightness-110 active:scale-[0.99] font-extrabold text-sm text-white shadow-lg shadow-blue-600/30 transition cursor-pointer"
+          >
+            Войти в ангар
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Drop Reveal Modal -->
+  <div id="win-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div id="win-card-container" class="glass-panel w-full max-w-md rounded-3xl p-6 text-center relative overflow-hidden border-2 transition-all">
+      <div id="win-glow" class="absolute -inset-24 opacity-30 blur-3xl pointer-events-none"></div>
+      <div class="relative z-10">
+        <div class="flex items-center justify-between mb-3">
+          <span id="win-rarity-badge" class="inline-block px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest">
+            LEGENDARY
+          </span>
+          <span id="win-xp-badge" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono-num font-extrabold bg-amber-500/20 text-amber-300 border border-amber-400/40">
+            +250 XP
+          </span>
+        </div>
+
+        <div class="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-950 border border-white/10 mb-4 flex items-center justify-center shadow-inner">
+          <div id="win-car-icon-box" class="w-full h-full flex items-center justify-center"></div>
+        </div>
+
+        <h3 id="win-car-name" class="text-2xl font-black tracking-tight text-white">B-2</h3>
+        <p id="win-car-price" class="font-mono-num text-xl font-extrabold text-emerald-400 mt-1">$9,999,999,999</p>
+
+        <div class="grid grid-cols-3 gap-2 my-5 bg-black/45 rounded-2xl p-3 border border-white/10 text-xs">
+          <div>
+            <div class="text-slate-400">Тяга / Мощн.</div>
+            <div id="win-spec-hp" class="font-mono-num font-bold text-white mt-0.5">1500 л.с.</div>
+          </div>
+          <div class="border-x border-white/10">
+            <div class="text-slate-400">Разгон / Тип</div>
+            <div id="win-spec-zero" class="font-mono-num font-bold text-white mt-0.5">2.4 сек</div>
+          </div>
+          <div>
+            <div class="text-slate-400">Макс. скор.</div>
+            <div id="win-spec-top" class="font-mono-num font-bold text-white mt-0.5">420 км/ч</div>
+          </div>
+        </div>
+
+        <button
+          id="claim-fly-btn"
+          class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 hover:brightness-110 active:scale-[0.98] font-extrabold text-sm text-white shadow-lg shadow-emerald-600/30 transition cursor-pointer"
+        >
+          Забрать в инвентарь и получить опыт
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Password Modal -->
+  <div id="admin-auth-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="glass-panel w-full max-w-sm rounded-3xl p-6 animate-modal-pop border border-rose-500/30">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white">Доступ к терминалу</h3>
+            <p class="text-[11px] text-slate-400">Введите пароль: 1581</p>
+          </div>
+        </div>
+        <button id="close-admin-auth-btn" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer">✕</button>
+      </div>
+
+      <form id="admin-auth-form" class="space-y-4">
+        <input
+          id="admin-pass-input"
+          type="password"
+          inputmode="numeric"
+          placeholder="••••"
+          class="w-full px-4 py-3 rounded-2xl bg-slate-950/90 border border-white/15 text-center font-mono-num text-xl tracking-[0.4em] text-white focus:outline-none focus:border-rose-400"
+        />
+        <p id="admin-auth-error" class="hidden text-xs text-rose-400 text-center font-semibold">Неверный пароль доступа</p>
+        <button type="submit" class="w-full py-3 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 hover:brightness-110 font-extrabold text-sm text-white shadow-lg shadow-rose-600/25 transition cursor-pointer">
+          Разблокировать панель
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Control Panel Modal -->
+  <div id="admin-panel-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="glass-panel w-full max-w-2xl rounded-3xl p-6 sm:p-7 animate-modal-pop border border-amber-500/35 max-h-[90vh] overflow-y-auto space-y-6">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-mono-num font-extrabold">ROOT // 1581</span>
+          <h3 class="text-lg sm:text-xl font-black text-white">Панель управления APEX</h3>
+        </div>
+        <button id="close-admin-panel-btn" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition cursor-pointer">✕</button>
+      </div>
+
+      <!-- 1. Spawn Any Vehicle -->
+      <div class="bg-slate-950/70 rounded-2xl p-4 border border-white/10 space-y-3">
+        <div class="text-xs font-extrabold uppercase tracking-wider text-sky-400">1. Выдача любого транспорта в инвентарь</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <select id="admin-vehicle-select" class="sm:col-span-2 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/15 text-xs font-semibold text-white focus:outline-none focus:border-sky-400"></select>
+          <input
+            id="admin-vehicle-qty"
+            type="number"
+            min="1"
+            max="500"
+            value="1"
+            placeholder="Кол-во"
+            class="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/15 font-mono-num text-xs font-bold text-white focus:outline-none focus:border-sky-400"
+          />
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" data-qty="1" class="admin-qty-preset px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-mono-num text-slate-300 cursor-pointer">×1</button>
+          <button type="button" data-qty="5" class="admin-qty-preset px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-mono-num text-slate-300 cursor-pointer">×5</button>
+          <button type="button" data-qty="10" class="admin-qty-preset px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-mono-num text-slate-300 cursor-pointer">×10</button>
+          <button
+            id="admin-give-vehicle-btn"
+            class="ml-auto px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs transition cursor-pointer"
+          >
+            Выдать транспорт
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Add Cash Value to Inventory Total -->
+      <div class="bg-slate-950/70 rounded-2xl p-4 border border-white/10 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-400">2. Выдача капитала к стоимости инвентаря ($)</div>
+          <span id="admin-bonus-cash-label" class="font-mono-num text-xs text-slate-400">Бонус: $0</span>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input
+            id="admin-cash-input"
+            type="number"
+            step="100000"
+            value="10000000"
+            placeholder="Сумма в долларах"
+            class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/15 font-mono-num text-xs font-bold text-emerald-300 focus:outline-none focus:border-emerald-400"
+          />
+          <button
+            id="admin-give-cash-btn"
+            class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition cursor-pointer"
+          >
+            Добавить к стоимости
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Grant XP & Levels -->
+      <div class="bg-slate-950/70 rounded-2xl p-4 border border-white/10 space-y-3">
+        <div class="text-xs font-extrabold uppercase tracking-wider text-amber-400">3. Выдача опыта (XP) и уровней</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex gap-2">
+            <input
+              id="admin-xp-input"
+              type="number"
+              min="1"
+              value="5000"
+              placeholder="Количество XP"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/15 font-mono-num text-xs font-bold text-amber-300 focus:outline-none focus:border-amber-400"
+            />
+            <button
+              id="admin-give-xp-btn"
+              class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shrink-0 transition cursor-pointer"
+            >
+              + XP
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <input
+              id="admin-lvl-input"
+              type="number"
+              min="1"
+              max="9999"
+              value="30"
+              placeholder="Уровень (1-9999)"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/15 font-mono-num text-xs font-bold text-purple-300 focus:outline-none focus:border-purple-400"
+            />
+            <button
+              id="admin-set-lvl-btn"
+              class="px-4 py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-extrabold text-xs shrink-0 transition cursor-pointer"
+            >
+              Уст. LVL
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Reset Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <button
+          id="admin-wipe-profile-btn"
+          class="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-xs font-bold text-rose-300 transition cursor-pointer"
+        >
+          Полный сброс текущего аккаунта
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vehicle Inspection Modal -->
+  <div id="inspect-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 relative border border-white/15 animate-modal-pop">
+      <button id="close-inspect-btn" class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer">
+        ✕
+      </button>
+      <div id="inspect-content"></div>
+    </div>
+  </div>
+
+  <!-- Sticky Top Header with XP Bar & Inventory Target -->
+  <header class="sticky top-0 z-30 glass-panel border-x-0 border-t-0 rounded-none">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25 shrink-0">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-base sm:text-lg tracking-tight">APEX HANGAR</span>
+            <span class="hidden lg:inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              Векторный дизайн • B-2 ($9.99B)
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Плавный рендеринг • Уровни и ранги</p>
+        </div>
+      </div>
+
+      <!-- XP & Level Progress Bar (Target for XP Orbs) -->
+      <div id="xp-target-box" class="order-3 lg:order-2 w-full lg:w-80 xl:w-96 bg-slate-950/85 border border-white/10 rounded-2xl px-3.5 py-2 transition">
+        <div class="flex items-center justify-between text-[11px] mb-1">
+          <span class="font-extrabold text-amber-400 flex items-center gap-1.5">
+            <span class="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 font-mono-num">LVL <span id="header-level">1</span></span>
+            <span id="header-tier-name" class="text-slate-300 font-semibold">Новичок</span>
+          </span>
+          <span class="font-mono-num text-slate-400">
+            <span id="header-xp-cur" class="text-white font-bold">0</span> / <span id="header-xp-next">500</span> XP
+          </span>
+        </div>
+        <div class="w-full h-2.5 rounded-full bg-slate-900 overflow-hidden border border-white/5 p-0.5">
+          <div id="header-xp-fill" class="xp-bar-fill h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-300" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+          <span>До след. уровня: <strong id="header-xp-rem" class="font-mono-num text-slate-200">500 XP</strong></span>
+          <span id="header-next-unlock" class="text-sky-400 font-semibold">Средняя рулетка на LVL 10</span>
+        </div>
+      </div>
+
+      <!-- Right Controls: Inventory Target Pill, Admin Button, Sound, Profile -->
+      <div class="order-2 lg:order-3 flex items-center gap-2">
+        <!-- Inventory Target Pill -->
+        <button
+          id="nav-inventory-pill"
+          class="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-900/95 hover:bg-slate-800 border border-white/10 transition cursor-pointer"
+          title="Открыть инвентарь"
+        >
+          <div class="w-7 h-7 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <div class="text-left">
+            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold leading-none">
+              Ангар (<span id="header-car-count" class="text-white">0</span>)
+            </div>
+            <div id="header-total-value" class="font-mono-num text-xs sm:text-sm font-extrabold text-emerald-400 mt-0.5">
+              $0
+            </div>
+          </div>
+        </button>
+
+        <!-- Admin Panel Button -->
+        <button
+          id="open-admin-btn"
+          class="w-10 h-10 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 transition cursor-pointer"
+          title="Админ-панель (1581)"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </button>
+
+        <!-- Sound Toggle -->
+        <button
+          id="sound-toggle-btn"
+          class="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-300 transition cursor-pointer"
+          title="Звуковые эффекты"
+        >
+          <svg id="sound-on-icon" class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zm4.54 3.46a5 5 0 010 7.07m2.83-9.9a9 9 0 010 12.73"/>
+          </svg>
+          <svg id="sound-off-icon" class="w-5 h-5 text-slate-500 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zm11 4l-6 6m0-6l6 6"/>
+          </svg>
+        </button>
+
+        <!-- Guest Profile Button -->
+        <button
+          id="edit-nick-btn"
+          class="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition cursor-pointer"
+          title="Сменить никнейм"
+        >
+          <div id="header-avatar" class="w-7 h-7 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-xs font-extrabold text-white">
+            G
+          </div>
+          <div class="hidden sm:block text-left">
+            <div id="header-nickname" class="text-xs font-bold text-white leading-none">Гость</div>
+            <div id="header-rank-badge" class="text-[10px] text-amber-400 font-semibold mt-0.5">Место #1</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+
+    <!-- 4 Level-Gated Roulettes & Spinner Section -->
+    <section class="glass-panel rounded-3xl p-5 sm:p-7 relative overflow-hidden">
+      <div class="flex flex-col gap-5 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-slate-300 mb-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              4 категории рулеток • Уровни 1, 10, 20, 30
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Рулетка транспорта</h1>
+          </div>
+          <div id="active-case-summary" class="text-xs bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 text-slate-300">
+            Активна: <strong class="text-sky-400">Базовая рулетка</strong>
+          </div>
+        </div>
+
+        <!-- 4 Roulette Tiers -->
+        <div id="case-tabs" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+      </div>
+
+      <!-- Roulette Track Container -->
+      <div class="relative rounded-2xl bg-slate-950/95 border border-white/10 p-3 sm:p-4 shadow-inner">
+        <div id="center-needle" class="center-needle"></div>
+        <div id="roulette-viewport" class="roulette-viewport py-2">
+          <div id="roulette-track" class="roulette-track"></div>
+        </div>
+      </div>
+
+      <!-- Spin Controls & Rarity Legend -->
+      <div class="mt-6 flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-1.5 text-[11px] font-semibold">
+          <span class="px-2.5 py-1 rounded-lg bg-slate-500/15 text-slate-300 border border-slate-500/30">Обычный</span>
+          <span class="px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30">Редкий</span>
+          <span class="px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">Эпический</span>
+          <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30">Легендарный</span>
+          <span class="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30">Мифический</span>
+          <span class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/50">B-2 ($9.99B)</span>
+        </div>
+
+        <div class="flex items-center gap-3 w-full lg:w-auto">
+          <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none bg-white/5 px-3.5 py-3 rounded-2xl border border-white/10">
+            <input id="fast-spin-toggle" type="checkbox" class="accent-sky-500 w-4 h-4 rounded" />
+            <span>Турбо</span>
+          </label>
+          <button
+            id="spin-btn"
+            class="flex-1 lg:flex-initial px-8 py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none font-extrabold text-sm sm:text-base text-white shadow-xl shadow-blue-600/30 transition cursor-pointer flex items-center justify-center gap-2.5"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span id="spin-btn-text">КРУТИТЬ РУЛЕТКУ</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="inline-flex p-1.5 rounded-2xl glass-panel gap-1">
+        <button data-tab="garage" class="main-tab-btn px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white/12 text-white shadow transition cursor-pointer">
+          Мой ангар (<span id="tab-garage-count">0</span>)
+        </button>
+        <button data-tab="leaderboard" class="main-tab-btn px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-400 hover:text-white transition cursor-pointer">
+          Лидерборд игроков (<span id="tab-lb-count">1</span>)
+        </button>
+        <button data-tab="catalog" class="main-tab-btn px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-400 hover:text-white transition cursor-pointer">
+          Каталог техники (<span id="tab-catalog-count">0</span>)
+        </button>
+      </div>
+
+      <div class="glass-panel px-4 py-2.5 rounded-2xl flex items-center gap-3 text-xs">
+        <span class="text-slate-400">Ваше место:</span>
+        <span id="subbar-rank" class="font-mono-num font-extrabold text-amber-400 text-sm">#1</span>
+        <span class="text-slate-600">|</span>
+        <span class="text-slate-400">Общая стоимость:</span>
+        <span id="subbar-value" class="font-mono-num font-extrabold text-emerald-400 text-sm">$0</span>
+      </div>
+    </div>
+
+    <!-- TAB 1: INVENTORY / HANGAR -->
+    <section id="section-garage" class="glass-panel rounded-3xl p-5 sm:p-7 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight">Личный ангар и автопарк</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Векторные иконки вашей коллекции. Нажмите для детального осмотра.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="garage-filter-rarity" class="px-3.5 py-2 rounded-xl bg-slate-950/85 border border-white/10 text-xs font-semibold text-slate-200 focus:outline-none focus:border-sky-400">
+            <option value="all">Все классы редкости</option>
+            <option value="aviation">Секретная авиация (B-2)</option>
+            <option value="mythic">Мифические</option>
+            <option value="hypercar">Легендарные</option>
+            <option value="supercar">Эпические</option>
+            <option value="sport">Редкие</option>
+            <option value="consumer">Обычные</option>
+          </select>
+
+          <select id="garage-sort" class="px-3.5 py-2 rounded-xl bg-slate-950/85 border border-white/10 text-xs font-semibold text-slate-200 focus:outline-none focus:border-sky-400">
+            <option value="newest">Сначала новые</option>
+            <option value="price-desc">Сначала самые дорогие</option>
+            <option value="price-asc">Сначала бюджетные</option>
+          </select>
+
+          <button
+            id="sell-duplicates-btn"
+            class="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-bold transition cursor-pointer"
+          >
+            Убрать дубликаты
+          </button>
+        </div>
+      </div>
+
+      <div id="garage-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+
+      <div id="garage-empty" class="hidden py-16 text-center">
+        <div class="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 mx-auto flex items-center justify-center text-slate-400 mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-white">Ваш ангар пока пуст</h3>
+        <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Запустите рулетку выше — выигранный транспорт перелетит прямо в этот раздел.</p>
+      </div>
+    </section>
+
+    <!-- TAB 2: REAL PLAYERS LEADERBOARD -->
+    <section id="section-leaderboard" class="hidden glass-panel rounded-3xl p-5 sm:p-7 space-y-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight">Лидерборд игроков (Топ-100 по стоимости инвентаря)</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Рейтинг игроков на основе стоимости личного автопарка.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <input
+            id="leaderboard-search"
+            type="text"
+            placeholder="Поиск по никнейму..."
+            class="px-3.5 py-2 rounded-xl bg-slate-950/85 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400"
+          />
+          <button
+            id="switch-account-cta"
+            class="px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/35 text-xs font-bold transition cursor-pointer"
+          >
+            + Новый игрок / Сменить ник
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto max-h-[600px] overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/65">
+        <table class="w-full text-left border-collapse">
+          <thead class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+            <tr>
+              <th class="py-3.5 px-4 w-16">Место</th>
+              <th class="py-3.5 px-4">Игрок</th>
+              <th class="py-3.5 px-4 text-center">Уровень</th>
+              <th class="py-3.5 px-4 hidden sm:table-cell">Лучший экспонат</th>
+              <th class="py-3.5 px-4 text-center">Техники</th>
+              <th class="py-3.5 px-4 text-right">Общая стоимость</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body" class="divide-y divide-white/5 text-xs sm:text-sm"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: FULL CATALOG -->
+    <section id="section-catalog" class="hidden glass-panel rounded-3xl p-5 sm:p-7 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight">Каталог транспорта и авиации</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Все модели с характеристиками, ценами и наградой в опыте</p>
+        </div>
+        <select id="catalog-filter" class="px-3.5 py-2 rounded-xl bg-slate-950/85 border border-white/10 text-xs font-semibold text-slate-200 focus:outline-none focus:border-sky-400">
+          <option value="all">Все модели</option>
+          <option value="aviation">Секретная авиация ($9.99B)</option>
+          <option value="mythic">Мифические</option>
+          <option value="hypercar">Легендарные</option>
+          <option value="supercar">Эпические</option>
+          <option value="sport">Редкие</option>
+          <option value="consumer">Обычные</option>
+        </select>
+      </div>
+
+      <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // 1. VEHICLES & AVIATION DATABASE WITH PROCEDURAL VECTOR/SVG ICON GENERATORS
+    // =========================================================================
+    const RARITY_META = {
+      consumer: {
+        label: 'Обычный',
+        color: '#94a3b8',
+        border: 'rgba(148, 163, 184, 0.35)',
+        glow: 'rgba(148, 163, 184, 0.25)',
+        badgeBg: 'rgba(148, 163, 184, 0.18)',
+        xpBase: 90
+      },
+      sport: {
+        label: 'Редкий',
+        color: '#38bdf8',
+        border: 'rgba(56, 189, 248, 0.45)',
+        glow: 'rgba(56, 189, 248, 0.32)',
+        badgeBg: 'rgba(56, 189, 248, 0.18)',
+        xpBase: 220
+      },
+      supercar: {
+        label: 'Эпический',
+        color: '#c084fc',
+        border: 'rgba(192, 132, 252, 0.52)',
+        glow: 'rgba(192, 132, 252, 0.36)',
+        badgeBg: 'rgba(192, 132, 252, 0.2)',
+        xpBase: 550
+      },
+      hypercar: {
+        label: 'Легендарный',
+        color: '#fbbf24',
+        border: 'rgba(251, 191, 36, 0.6)',
+        glow: 'rgba(251, 191, 36, 0.42)',
+        badgeBg: 'rgba(251, 191, 36, 0.22)',
+        xpBase: 1400
+      },
+      mythic: {
+        label: 'Мифический',
+        color: '#f43f5e',
+        border: 'rgba(244, 63, 94, 0.72)',
+        glow: 'rgba(244, 63, 94, 0.5)',
+        badgeBg: 'rgba(244, 63, 94, 0.24)',
+        xpBase: 4200
+      },
+      aviation: {
+        label: 'УЛЬТРА-ЭКСКЛЮЗИВ',
+        color: '#22d3ee',
+        border: 'rgba(34, 211, 238, 0.85)',
+        glow: 'rgba(34, 211, 238, 0.65)',
+        badgeBg: 'rgba(34, 211, 238, 0.25)',
+        xpBase: 25000
+      }
+    };
+
+    function generateVehicleSvg(type, colorHex) {
+      if (type === 'aviation') {
+        // B-2 Stealth Bomber Vector
+        return `
+          <svg viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full object-contain drop-shadow-xl">
+            <path d="M200 35 L380 145 L320 155 L250 135 L200 145 L150 135 L80 155 L20 145 Z" fill="#0b0f19" stroke="${colorHex}" stroke-width="3"/>
+            <path d="M200 45 L350 142 L280 148 L200 138 L120 148 L50 142 Z" fill="url(#b2Grad)" opacity="0.85"/>
+            <circle cx="160" cy="110" r="6" fill="${colorHex}" opacity="0.9"/>
+            <circle cx="240" cy="110" r="6" fill="${colorHex}" opacity="0.9"/>
+            <defs>
+              <linearGradient id="b2Grad" x1="200" y1="45" x2="200" y2="148" gradientUnits="userSpaceOnUse">
+                <stop stop-color="${colorHex}" stop-opacity="0.4"/>
+                <stop offset="1" stop-color="#020617" stop-opacity="0.9"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        `;
+      }
+      if (type === 'hypercar' || type === 'mythic') {
+        // Sleek Hypercar Vector
+        return `
+          <svg viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full object-contain drop-shadow-xl">
+            <path d="M60 135 Q110 110 170 110 L280 115 Q340 120 360 135 Q370 145 350 150 L50 150 Q30 145 60 135 Z" fill="${colorHex}" opacity="0.25"/>
+            <path d="M75 140 L110 112 Q160 90 230 95 L310 118 L355 138 Q365 145 350 148 L50 148 Q35 142 75 140 Z" fill="#0f172a" stroke="${colorHex}" stroke-width="2.5"/>
+            <path d="M140 112 L190 96 L270 100 L305 118 Z" fill="url(#glassGrad)" stroke="${colorHex}" stroke-width="1.5"/>
+            <circle cx="115" cy="148" r="22" fill="#020617" stroke="${colorHex}" stroke-width="4"/>
+            <circle cx="115" cy="148" r="10" fill="${colorHex}"/>
+            <circle cx="295" cy="148" r="22" fill="#020617" stroke="${colorHex}" stroke-width="4"/>
+            <circle cx="295" cy="148" r="10" fill="${colorHex}"/>
+            <defs>
+              <linearGradient id="glassGrad" x1="200" y1="96" x2="200" y2="118" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#38bdf8" stop-opacity="0.6"/>
+                <stop offset="1" stop-color="#0f172a" stop-opacity="0.9"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        `;
+      }
+      // Standard / Sports car vector
+      return `
+        <svg viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full object-contain drop-shadow-lg">
+          <path d="M80 130 Q130 105 190 105 L270 112 Q330 118 345 132 L65 132 Z" fill="#0f172a" stroke="${colorHex}" stroke-width="2.5"/>
+          <path d="M150 105 L190 85 L250 88 L275 112 Z" fill="url(#stdGlass)" stroke="${colorHex}" stroke-width="1.5"/>
+          <circle cx="120" cy="132" r="20" fill="#020617" stroke="${colorHex}" stroke-width="3.5"/>
+          <circle cx="280" cy="132" r="20" fill="#020617" stroke="${colorHex}" stroke-width="3.5"/>
+          <defs>
+            <linearGradient id="stdGlass" x1="200" y1="85" x2="200" y2="112" gradientUnits="userSpaceOnUse">
+              <stop stop-color="${colorHex}" stop-opacity="0.5"/>
+              <stop offset="1" stop-color="#0f172a" stop-opacity="0.85"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      `;
+    }
+
+    const VEHICLES_DB = [
+      // --- CONSUMER ($18,500 – $44,000) ---
+      { id: 'lada-vesta', name: 'Lada Vesta Sport', brand: 'LADA', price: 18500, hp: '145 л.с.', zeroToHundred: '9.6 с', topSpeed: '198 км/ч', rarity: 'consumer' },
+      { id: 'toyota-camry', name: 'Toyota Camry TRD', brand: 'Toyota', price: 28000, hp: '301 л.с.', zeroToHundred: '5.8 с', topSpeed: '210 км/ч', rarity: 'consumer' },
+      { id: 'mazda-mx5', name: 'Mazda MX-5 Miata', brand: 'Mazda', price: 29500, hp: '181 л.с.', zeroToHundred: '6.5 с', topSpeed: '219 км/ч', rarity: 'consumer' },
+      { id: 'vw-golf-gti', name: 'VW Golf GTI', brand: 'Volkswagen', price: 32500, hp: '241 л.с.', zeroToHundred: '6.2 с', topSpeed: '250 км/ч', rarity: 'consumer' },
+      { id: 'subaru-wrx', name: 'Subaru WRX STI', brand: 'Subaru', price: 38500, hp: '310 л.с.', zeroToHundred: '5.2 с', topSpeed: '255 км/ч', rarity: 'consumer' },
+      { id: 'ford-mustang', name: 'Ford Mustang GT', brand: 'Ford', price: 42500, hp: '480 л.с.', zeroToHundred: '4.3 с', topSpeed: '250 км/ч', rarity: 'consumer' },
+      { id: 'honda-civic', name: 'Honda Civic Type R', brand: 'Honda', price: 44000, hp: '315 л.с.', zeroToHundred: '5.4 с', topSpeed: '275 км/ч', rarity: 'consumer' },
+
+      // --- SPORT / RARE ($56,000 – $106,000) ---
+      { id: 'toyota-supra', name: 'Toyota GR Supra', brand: 'Toyota', price: 56000, hp: '382 л.с.', zeroToHundred: '4.1 с', topSpeed: '250 км/ч', rarity: 'sport' },
+      { id: 'bmw-m2', name: 'BMW M2 G87', brand: 'BMW', price: 64500, hp: '460 л.с.', zeroToHundred: '4.1 с', topSpeed: '285 км/ч', rarity: 'sport' },
+      { id: 'corvette-c8', name: 'Chevrolet Corvette C8', brand: 'Chevrolet', price: 69500, hp: '495 л.с.', zeroToHundred: '2.9 с', topSpeed: '312 км/ч', rarity: 'sport' },
+      { id: 'bmw-m3', name: 'BMW M3 Competition', brand: 'BMW', price: 76000, hp: '510 л.с.', zeroToHundred: '3.5 с', topSpeed: '290 км/ч', rarity: 'sport' },
+      { id: 'alfa-giulia', name: 'Alfa Romeo Giulia QV', brand: 'Alfa Romeo', price: 82000, hp: '505 л.с.', zeroToHundred: '3.9 с', topSpeed: '307 км/ч', rarity: 'sport' },
+      { id: 'lexus-lc500', name: 'Lexus LC 500 V8', brand: 'Lexus', price: 99000, hp: '471 л.с.', zeroToHundred: '4.4 с', topSpeed: '270 км/ч', rarity: 'sport' },
+
+      // --- SUPERCAR / EPIC ($121,000 – $325,000) ---
+      { id: 'nissan-gtr', name: 'Nissan GT-R Nismo', brand: 'Nissan', price: 121000, hp: '600 л.с.', zeroToHundred: '2.7 с', topSpeed: '315 км/ч', rarity: 'supercar' },
+      { id: 'audi-rs6', name: 'Audi RS 6 Avant', brand: 'Audi', price: 126000, hp: '621 л.с.', zeroToHundred: '3.4 с', topSpeed: '305 км/ч', rarity: 'supercar' },
+      { id: 'mercedes-g63', name: 'Mercedes-AMG G 63', brand: 'Mercedes-AMG', price: 183000, hp: '585 л.с.', zeroToHundred: '4.5 с', topSpeed: '240 км/ч', rarity: 'supercar' },
+      { id: 'audi-r8', name: 'Audi R8 V10 Performance', brand: 'Audi', price: 210000, hp: '612 л.с.', zeroToHundred: '3.1 с', topSpeed: '331 км/ч', rarity: 'supercar' },
+      { id: 'porsche-gt3rs', name: 'Porsche 911 GT3 RS', brand: 'Porsche', price: 241000, hp: '525 л.с.', zeroToHundred: '3.2 с', topSpeed: '296 км/ч', rarity: 'supercar' },
+      { id: 'lambo-sto', name: 'Lamborghini Huracán STO', brand: 'Lamborghini', price: 275000, hp: '640 л.с.', zeroToHundred: '3.0 с', topSpeed: '310 км/ч', rarity: 'supercar' },
+      { id: 'ferrari-f8', name: 'Ferrari F8 Tributo', brand: 'Ferrari', price: 285000, hp: '720 л.с.', zeroToHundred: '2.9 с', topSpeed: '340 км/ч', rarity: 'supercar' },
+      { id: 'mclaren-720s', name: 'McLaren 720S', brand: 'McLaren', price: 315000, hp: '720 л.с.', zeroToHundred: '2.9 с', topSpeed: '341 км/ч', rarity: 'supercar' },
+
+      // --- HYPERCAR / LEGENDARY ($455,000 – $1,850,000) ---
+      { id: 'rolls-cullinan', name: 'Rolls-Royce Cullinan BB', brand: 'Rolls-Royce', price: 455000, hp: '600 л.с.', zeroToHundred: '4.9 с', topSpeed: '250 км/ч', rarity: 'hypercar' },
+      { id: 'ferrari-sf90', name: 'Ferrari SF90 Stradale', brand: 'Ferrari', price: 525000, hp: '1000 л.с.', zeroToHundred: '2.5 с', topSpeed: '340 км/ч', rarity: 'hypercar' },
+      { id: 'lambo-revuelto', name: 'Lamborghini Revuelto', brand: 'Lamborghini', price: 608000, hp: '1015 л.с.', zeroToHundred: '2.5 с', topSpeed: '350 км/ч', rarity: 'hypercar' },
+      { id: 'lexus-lfa', name: 'Lexus LFA V10', brand: 'Lexus', price: 950000, hp: '560 л.с.', zeroToHundred: '3.7 с', topSpeed: '325 км/ч', rarity: 'hypercar' },
+      { id: 'mclaren-senna', name: 'McLaren Senna', brand: 'McLaren', price: 1150000, hp: '800 л.с.', zeroToHundred: '2.8 с', topSpeed: '335 км/ч', rarity: 'hypercar' },
+      { id: 'porsche-918', name: 'Porsche 918 Spyder', brand: 'Porsche', price: 1450000, hp: '887 л.с.', zeroToHundred: '2.6 с', topSpeed: '345 км/ч', rarity: 'hypercar' },
+      { id: 'mclaren-p1', name: 'McLaren P1', brand: 'McLaren', price: 1650000, hp: '916 л.с.', zeroToHundred: '2.8 с', topSpeed: '350 км/ч', rarity: 'hypercar' },
+      { id: 'pagani-huayra', name: 'Pagani Huayra Roadster', brand: 'Pagani', price: 1850000, hp: '764 л.с.', zeroToHundred: '2.8 с', topSpeed: '370 км/ч', rarity: 'hypercar' },
+
+      // --- MYTHIC ($2,200,000 – $143,000,000) ---
+      { id: 'rimac-nevera', name: 'Rimac Nevera', brand: 'Rimac', price: 2200000, hp: '1914 л.с.', zeroToHundred: '1.81 с', topSpeed: '412 км/ч', rarity: 'mythic' },
+      { id: 'ferrari-laferrari', name: 'Ferrari LaFerrari', brand: 'Ferrari', price: 3200000, hp: '963 л.с.', zeroToHundred: '2.6 с', topSpeed: '352 км/ч', rarity: 'mythic' },
+      { id: 'koenigsegg-jesko', name: 'Koenigsegg Jesko Absolut', brand: 'Koenigsegg', price: 3400000, hp: '1600 л.с.', zeroToHundred: '2.5 с', topSpeed: '500+ км/ч', rarity: 'mythic' },
+      { id: 'bugatti-chiron', name: 'Bugatti Chiron Pur Sport', brand: 'Bugatti', price: 3600000, hp: '1500 л.с.', zeroToHundred: '2.3 с', topSpeed: '350 км/ч', rarity: 'mythic' },
+      { id: 'bugatti-bolide', name: 'Bugatti Bolide', brand: 'Bugatti', price: 4700000, hp: '1850 л.с.', zeroToHundred: '2.17 с', topSpeed: '500 км/ч', rarity: 'mythic' },
+      { id: 'pagani-zonda', name: 'Pagani Zonda HP Barchetta', brand: 'Pagani', price: 17500000, hp: '800 л.с.', zeroToHundred: '3.1 с', topSpeed: '355 км/ч', rarity: 'mythic' },
+      { id: 'bugatti-voiture', name: 'Bugatti La Voiture Noire', brand: 'Bugatti', price: 18700000, hp: '1500 л.с.', zeroToHundred: '2.4 с', topSpeed: '420 км/ч', rarity: 'mythic' },
+      { id: 'rolls-boattail', name: 'Rolls-Royce Boat Tail', brand: 'Rolls-Royce', price: 28000000, hp: '563 л.с.', zeroToHundred: '5.0 с', topSpeed: '250 км/ч', rarity: 'mythic' },
+      { id: 'ferrari-250gto', name: 'Ferrari 250 GTO (1962)', brand: 'Ferrari Classic', price: 70000000, hp: '300 л.с.', zeroToHundred: '5.8 с', topSpeed: '280 км/ч', rarity: 'mythic' },
+      { id: 'mercedes-300slr', name: 'Mercedes-Benz 300 SLR', brand: 'Mercedes-Benz', price: 143000000, hp: '310 л.с.', zeroToHundred: '6.8 с', topSpeed: '290 км/ч', rarity: 'mythic' },
+
+      // --- ULTRA-EXCLUSIVE B-2 BOMBER ($9,999,999,999 / 9.99B) ---
+      {
+        id: 'northrop-b2-spirit',
+        name: 'B-2',
+        fullName: 'Northrop B-2 Spirit Stealth Bomber',
+        brand: 'Northrop Grumman',
+        price: 9999999999,
+        displayPrice: '$9,999,999,999',
+        hp: '4 × F118-GE-100',
+        zeroToHundred: 'Стелс-крыло',
+        topSpeed: '1,010 км/ч',
+        rarity: 'aviation'
+      }
+    ];
+
+    // =========================================================================
+    // 2. FOUR LEVEL-GATED ROULETTE TIERS
+    // =========================================================================
+    const ROULETTE_TIERS = [
+      {
+        id: 'basic',
+        name: 'Базовая рулетка',
+        minLevel: 1,
+        maxLevel: 10,
+        badge: 'LVL 1–10',
+        accent: '#38bdf8',
+        desc: 'Стартовый автосалон: базовые шансы, весь доступный парк.',
+        minPrice: 0,
+        rarityWeights: { consumer: 62, sport: 25, supercar: 9, hypercar: 3.2, mythic: 0.75, aviation: 0.05 }
+      },
+      {
+        id: 'medium',
+        name: 'Средняя рулетка',
+        minLevel: 10,
+        maxLevel: 20,
+        badge: 'LVL 10–20',
+        accent: '#a855f7',
+        desc: 'Меньше бюджетных машин, повышенный шанс на спорткары и суперкары.',
+        minPrice: 38000,
+        rarityWeights: { consumer: 22, sport: 40, supercar: 24, hypercar: 10.5, mythic: 3.2, aviation: 0.3 }
+      },
+      {
+        id: 'pro',
+        name: 'Профессиональная рулетка',
+        minLevel: 20,
+        maxLevel: 30,
+        badge: 'LVL 20–30',
+        accent: '#f59e0b',
+        desc: 'Убраны дешевые машины. Высокий шанс на гиперкары и раритеты.',
+        minPrice: 95000,
+        rarityWeights: { consumer: 0, sport: 14, supercar: 42, hypercar: 29, mythic: 13.5, aviation: 1.5 }
+      },
+      {
+        id: 'apex',
+        name: 'Самая лучшая рулетка',
+        minLevel: 30,
+        maxLevel: 9999,
+        badge: 'LVL 30–9999',
+        accent: '#22d3ee',
+        desc: 'Только суперкары, гиперкары, раритеты и повышенный шанс на B-2 ($9.99B).',
+        minPrice: 240000,
+        rarityWeights: { consumer: 0, sport: 0, supercar: 26, hypercar: 38, mythic: 30, aviation: 6.0 }
+      }
+    ];
+
+    // =========================================================================
+    // 3. WEB AUDIO API SOUND ENGINE
+    // =========================================================================
+    class SoundEngine {
+      constructor() {
+        this.enabled = true;
+        this.ctx = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTick(pitchMultiplier = 1) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(540 * pitchMultiplier, now);
+        osc.frequency.exponentialRampToValueAtTime(135, now + 0.03);
+
+        gain.gain.setValueAtTime(0.075, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.032);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.034);
+      }
+
+      playWinReveal(rarity) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const notes = rarity === 'aviation'
+          ? [220, 329.63, 440, 659.25, 880, 1318.5]
+          : [261.63, 329.63, 392.00, 523.25];
+
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = rarity === 'aviation' || rarity === 'mythic' ? 'sawtooth' : 'sine';
+          const start = now + idx * 0.05;
+          osc.frequency.setValueAtTime(freq, start);
+
+          gain.gain.setValueAtTime(0.001, start);
+          gain.gain.linearRampToValueAtTime(0.06, start + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.0008, start + 0.55);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(start);
+          osc.stop(start + 0.58);
+        });
+      }
+
+      playXpOrbHit(orbIndex = 0) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const pentatonic = [587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51, 1567.98];
+        const baseFreq = pentatonic[orbIndex % pentatonic.length];
+
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc1.type = 'sine';
+        osc2.type = 'triangle';
+        osc1.frequency.setValueAtTime(baseFreq, now);
+        osc2.frequency.setValueAtTime(baseFreq * 1.5, now);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.085, now + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.34);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.36);
+        osc2.stop(now + 0.36);
+      }
+
+      playInventoryLand() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const chord = [196.00, 293.66, 392.00, 493.88];
+
+        chord.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = idx === 0 ? 'triangle' : 'sine';
+          const start = now + idx * 0.025;
+          osc.frequency.setValueAtTime(freq, start);
+
+          gain.gain.setValueAtTime(0.001, start);
+          gain.gain.linearRampToValueAtTime(idx === 0 ? 0.12 : 0.065, start + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0008, start + 0.48);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(start);
+          osc.stop(start + 0.5);
+        });
+      }
+
+      playLevelUp() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const fanfare = [523.25, 659.25, 783.99, 1046.50];
+        fanfare.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          const t = now + i * 0.07;
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.09, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.47);
+        });
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    // =========================================================================
+    // 4. STATE & PERSISTENCE
+    // =========================================================================
+    const STORAGE_KEY = 'apex_hangar_vector_players_v1';
+
+    let state = {
+      currentNickname: '',
+      players: {},
+      selectedCase: 'basic',
+      isSpinning: false,
+      activeTab: 'garage',
+      pendingDrop: null,
+      adminUnlocked: false
+    };
+
+    function getXpRequiredForLevel(level) {
+      return Math.round(450 + Math.pow(level, 1.35) * 110);
+    }
+
+    function calculateVehicleXp(car) {
+      const meta = RARITY_META[car.rarity];
+      const priceBonus = Math.round(Math.log10(Math.max(10000, car.price)) * 45);
+      return meta.xpBase + priceBonus;
+    }
+
+    function formatPrice(car) {
+      if (car.displayPrice) return car.displayPrice;
+      return formatUSD(car.price);
+    }
+
+    function formatUSD(amount) {
+      return '$' + Math.round(amount).toLocaleString('en-US');
+    }
+
+    function getVehicleById(id) {
+      return VEHICLES_DB.find(v => v.id === id) || VEHICLES_DB[0];
+    }
+
+    function getCurrentPlayer() {
+      const nick = state.currentNickname || 'Гость';
+      if (!state.players[nick]) {
+        state.players[nick] = {
+          nickname: nick,
+          xp: 0,
+          level: 1,
+          bonusCash: 0,
+          inventory: [],
+          updatedAt: Date.now()
+        };
+      }
+      return state.players[nick];
+    }
+
+    function getPlayerTotalValue(player) {
+      const carsSum = (player.inventory || []).reduce((sum, item) => sum + getVehicleById(item.carId).price, 0);
+      return carsSum + (player.bonusCash || 0);
+    }
+
+    function saveAllPlayers() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        currentNickname: state.currentNickname,
+        players: state.players
+      }));
+    }
+
+    function loadAllPlayers() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.currentNickname) state.currentNickname = parsed.currentNickname;
+          if (parsed.players && typeof parsed.players === 'object') {
+            state.players = parsed.players;
+          }
+        }
+      } catch (e) {
+        console.warn('Storage load fallback', e);
+      }
+    }
+
+    function showToast(msg) {
+      const banner = document.getElementById('toast-banner');
+      document.getElementById('toast-text').textContent = msg;
+      banner.classList.remove('hidden');
+      banner.classList.add('flex');
+      clearTimeout(banner._timer);
+      banner._timer = setTimeout(() => {
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+      }, 3200);
+    }
+
+    function grantXp(amount, playSound = true) {
+      const player = getCurrentPlayer();
+      player.xp += amount;
+      let leveledUp = false;
+
+      while (player.level < 9999) {
+        const needed = getXpRequiredForLevel(player.level);
+        if (player.xp >= needed) {
+          player.xp -= needed;
+          player.level += 1;
+          leveledUp = true;
+        } else {
+          break;
+        }
+      }
+
+      player.updatedAt = Date.now();
+      saveAllPlayers();
+      updateAllUI();
+
+      if (leveledUp) {
+        if (playSound) sound.playLevelUp();
+        showToast(`Поздравляем! Достигнут уровень ${player.level}!`);
+      }
+    }
+
+    // =========================================================================
+    // 5. ROULETTE ENGINE
+    // =========================================================================
+    function getTierById(tierId) {
+      return ROULETTE_TIERS.find(t => t.id === tierId) || ROULETTE_TIERS[0];
+    }
+
+    function getPoolForTier(tier) {
+      return VEHICLES_DB.filter(v => v.price && (tier.rarityWeights[v.rarity] || 0) > 0);
+    }
+
+    function pickWeightedVehicle(tierId) {
+      const tier = getTierById(tierId);
+      const pool = getPoolForTier(tier);
+
+      const weights = pool.map(car => {
+        const tierRarityWeight = tier.rarityWeights[car.rarity] || 0;
+        if (tierRarityWeight <= 0) return 0;
+        const priceDampener = 1 / Math.pow(Math.max(15000, car.price) / 15000, 0.35);
+        return tierRarityWeight * priceDampener;
+      });
+
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      let roll = Math.random() * totalWeight;
+      for (let i = 0; i < pool.length; i++) {
+        roll -= weights[i];
+        if (roll <= 0) return pool[i];
+      }
+      return pool[pool.length - 1];
+    }
+
+    function renderRouletteTabs() {
+      const player = getCurrentPlayer();
+      const container = document.getElementById('case-tabs');
+
+      const currentTier = getTierById(state.selectedCase);
+      if (player.level < currentTier.minLevel) {
+        state.selectedCase = 'basic';
+      }
+
+      container.innerHTML = ROULETTE_TIERS.map(tier => {
+        const unlocked = player.level >= tier.minLevel;
+        const isSelected = state.selectedCase === tier.id;
+
+        return `
+          <button
+            data-case="${tier.id}"
+            class="case-tab-btn p-3.5 rounded-2xl border text-left transition relative overflow-hidden ${
+              !unlocked
+                ? 'bg-slate-950/60 border-white/5 opacity-60 cursor-not-allowed'
+                : isSelected
+                  ? 'bg-white/10 border-sky-400/60 shadow-lg cursor-pointer'
+                  : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 cursor-pointer'
+            }"
+            style="${isSelected && unlocked ? `box-shadow: 0 10px 30px -8px ${tier.accent}55; border-color: ${tier.accent};` : ''}"
+          >
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <span class="text-[10px] font-mono-num font-extrabold uppercase px-2 py-0.5 rounded-md" style="background: ${tier.accent}22; color: ${tier.accent};">
+                ${tier.badge}
+              </span>
+              ${
+                unlocked
+                  ? `<span class="text-[10px] font-bold text-emerald-400">● Открыто</span>`
+                  : `<span class="text-[10px] font-bold text-rose-400">🔒 Нужен LVL ${tier.minLevel}</span>`
+              }
+            </div>
+            <div class="text-sm font-extrabold text-white">${tier.name}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5 line-clamp-2">${tier.desc}</div>
+          </button>
+        `;
+      }).join('');
+
+      const activeTier = getTierById(state.selectedCase);
+      document.getElementById('active-case-summary').innerHTML = `
+        Активна: <strong style="color: ${activeTier.accent}">${activeTier.name} (${activeTier.badge})</strong> — ${activeTier.desc}
+      `;
+
+      container.querySelectorAll('.case-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (state.isSpinning) return;
+          const tier = getTierById(btn.dataset.case);
+          if (player.level < tier.minLevel) {
+            showToast(`Эта рулетка откроется на ${tier.minLevel} уровне!`);
+            return;
+          }
+          state.selectedCase = tier.id;
+          renderRouletteTabs();
+          populateIdleTrack();
+        });
+      });
+    }
+
+    function createRouletteCardHTML(car, index) {
+      const meta = RARITY_META[car.rarity];
+      return `
+        <div
+          data-idx="${index}"
+          class="roulette-card flex flex-col justify-between select-none"
+          style="border-color: ${meta.border}; box-shadow: inset 0 0 28px ${meta.glow};"
+        >
+          <div class="relative h-28 w-full bg-slate-950 overflow-hidden flex items-center justify-center p-2">
+            ${generateVehicleSvg(car.rarity, meta.color)}
+            <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider backdrop-blur-md" style="background: ${meta.badgeBg}; color: ${meta.color}; border: 1px solid ${meta.border};">
+              ${meta.label}
+            </span>
+            <span class="absolute top-2 right-2 text-[9px] font-bold text-slate-200 bg-black/55 px-1.5 py-0.5 rounded">
+              +${calculateVehicleXp(car)} XP
+            </span>
+          </div>
+
+          <div class="p-3 pt-2 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${car.brand}</div>
+              <div class="text-xs font-extrabold text-white truncate mt-0.5">${car.name}</div>
+            </div>
+            <div class="font-mono-num text-xs font-extrabold mt-1 truncate" style="color: ${meta.color};">
+              ${formatPrice(car)}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const trackEl = document.getElementById('roulette-track');
+    const viewportEl = document.getElementById('roulette-viewport');
+    const needleEl = document.getElementById('center-needle');
+    const CARD_WIDTH = 232;
+    const CARD_GAP = 14;
+    const STRIDE = CARD_WIDTH + CARD_GAP;
+    const TOTAL_CARDS = 68;
+    const WIN_INDEX = 56;
+
+    function populateIdleTrack() {
+      const items = [];
+      for (let i = 0; i < 16; i++) {
+        const sample = pickWeightedVehicle(state.selectedCase);
+        items.push(createRouletteCardHTML(sample, i));
+      }
+      trackEl.style.transform = 'translate3d(0px, 0, 0)';
+      trackEl.innerHTML = items.join('');
+    }
+
+    function triggerNeedleTick(speedRatio) {
+      needleEl.classList.add('tick');
+      sound.playTick(0.85 + speedRatio * 0.45);
+      setTimeout(() => needleEl.classList.remove('tick'), 50);
+    }
+
+    function spinRoulette() {
+      if (state.isSpinning) return;
+      const player = getCurrentPlayer();
+      const tier = getTierById(state.selectedCase);
+      if (player.level < tier.minLevel) {
+        showToast(`Требуется ${tier.minLevel} уровень!`);
+        return;
+      }
+
+      state.isSpinning = true;
+      const spinBtn = document.getElementById('spin-btn');
+      const spinBtnText = document.getElementById('spin-btn-text');
+      spinBtn.disabled = true;
+      spinBtnText.textContent = 'РАЗГОН...';
+
+      const winnerCar = pickWeightedVehicle(state.selectedCase);
+      const stripCars = [];
+      for (let i = 0; i < TOTAL_CARDS; i++) {
+        stripCars.push(i === WIN_INDEX ? winnerCar : pickWeightedVehicle(state.selectedCase));
+      }
+
+      trackEl.innerHTML = stripCars.map((c, idx) => createRouletteCardHTML(c, idx)).join('');
+      trackEl.style.transform = 'translate3d(0px, 0, 0)';
+
+      const viewportWidth = viewportEl.clientWidth;
+      const centerOffset = viewportWidth / 2 - CARD_WIDTH / 2;
+      const jitter = (Math.random() - 0.5) * 115;
+      const targetX = -(WIN_INDEX * STRIDE - centerOffset + jitter);
+
+      const isFast = document.getElementById('fast-spin-toggle').checked;
+      const duration = isFast ? 2300 : 5200;
+      const startTime = performance.now();
+      let lastTickIndex = -1;
+
+      function easeOutQuintic(t) {
+        return 1 - Math.pow(1 - t, 4.6);
+      }
+
+      function frame(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeOutQuintic(progress);
+        const currentX = targetX * eased;
+
+        trackEl.style.transform = `translate3d(${currentX}px, 0, 0)`;
+
+        const centerWorldPos = -currentX + viewportWidth / 2;
+        const currentCardIdx = Math.floor(centerWorldPos / STRIDE);
+        if (currentCardIdx !== lastTickIndex && currentCardIdx >= 0) {
+          lastTickIndex = currentCardIdx;
+          triggerNeedleTick(1 - progress);
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          finishSpin(winnerCar);
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    function finishSpin(winnerCar) {
+      const cards = trackEl.querySelectorAll('.roulette-card');
+      const winCardEl = cards[WIN_INDEX];
+      const meta = RARITY_META[winnerCar.rarity];
+
+      if (winCardEl) {
+        winCardEl.classList.add('winner-highlight');
+        winCardEl.style.boxShadow = `0 0 38px ${meta.glow}, inset 0 0 24px ${meta.glow}`;
+      }
+
+      sound.playWinReveal(winnerCar.rarity);
+      state.pendingDrop = winnerCar;
+
+      setTimeout(() => {
+        openWinModal(winnerCar);
+        state.isSpinning = false;
+        const spinBtn = document.getElementById('spin-btn');
+        const spinBtnText = document.getElementById('spin-btn-text');
+        spinBtn.disabled = false;
+        spinBtnText.textContent = 'КРУТИТЬ РУЛЕТКУ';
+      }, 380);
+    }
+
+    // =========================================================================
+    // 6. WIN MODAL + PARTICLES & FLIGHT ANIMATION
+    // =========================================================================
+    function openWinModal(car) {
+      const meta = RARITY_META[car.rarity];
+      const modal = document.getElementById('win-modal');
+      const cardBox = document.getElementById('win-card-container');
+      const badge = document.getElementById('win-rarity-badge');
+      const glow = document.getElementById('win-glow');
+      const xpReward = calculateVehicleXp(car);
+
+      cardBox.style.borderColor = meta.border;
+      cardBox.style.boxShadow = `0 25px 70px ${meta.glow}`;
+      glow.style.background = `radial-gradient(circle, ${meta.color}, transparent 70%)`;
+
+      badge.textContent = meta.label;
+      badge.style.background = meta.badgeBg;
+      badge.style.color = meta.color;
+
+      document.getElementById('win-xp-badge').textContent = `+${xpReward.toLocaleString('en-US')} XP`;
+      document.getElementById('win-car-icon-box').innerHTML = generateVehicleSvg(car.rarity, meta.color);
+
+      document.getElementById('win-car-name').textContent = car.fullName || car.name;
+      document.getElementById('win-car-price').textContent = formatPrice(car);
+      document.getElementById('win-spec-hp').textContent = car.hp;
+      document.getElementById('win-spec-zero').textContent = car.zeroToHundred;
+      document.getElementById('win-spec-top').textContent = car.topSpeed;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      cardBox.classList.remove('animate-modal-pop');
+      void cardBox.offsetWidth;
+      cardBox.classList.add('animate-modal-pop');
+    }
+
+    function launchXpParticles(originX, originY, totalXp) {
+      const xpTargetEl = document.getElementById('xp-target-box');
+      const dstRect = xpTargetEl.getBoundingClientRect();
+      const endX = dstRect.left + dstRect.width * 0.5;
+      const endY = dstRect.top + dstRect.height * 0.5;
+
+      const orbCount = Math.min(12, Math.max(6, Math.floor(Math.log10(totalXp + 10) * 3)));
+      const xpPerOrb = Math.floor(totalXp / orbCount);
+      const remainderXp = totalXp - xpPerOrb * orbCount;
+
+      for (let i = 0; i < orbCount; i++) {
+        const orb = document.createElement('div');
+        const size = 12 + (i % 3) * 3;
+        orb.style.position = 'fixed';
+        orb.style.left = (originX - size / 2) + 'px';
+        orb.style.top = (originY - size / 2) + 'px';
+        orb.style.width = size + 'px';
+        orb.style.height = size + 'px';
+        orb.style.borderRadius = '9999px';
+        orb.style.background = 'radial-gradient(circle, #fef08a 0%, #f59e0b 65%, #ea580c 100%)';
+        orb.style.boxShadow = '0 0 14px #fbbf24, 0 0 28px rgba(245, 158, 11, 0.75)';
+        orb.style.zIndex = '135';
+        orb.style.willChange = 'transform, opacity';
+        document.getElementById('fx-layer').appendChild(orb);
+
+        const spreadAngle = (Math.PI * 2 * i) / orbCount + (Math.random() - 0.5) * 0.4;
+        const burstRadius = 65 + Math.random() * 65;
+        const ctrlX = Math.cos(spreadAngle) * burstRadius + (endX - originX) * 0.25;
+        const ctrlY = Math.sin(spreadAngle) * burstRadius + (endY - originY) * 0.25;
+        const deltaX = endX - originX;
+        const deltaY = endY - originY;
+
+        const delay = i * 55;
+        const duration = 640 + (i % 4) * 35;
+        const startTime = performance.now() + delay;
+        const orbXp = i === orbCount - 1 ? xpPerOrb + remainderXp : xpPerOrb;
+
+        function animateOrb(now) {
+          if (now < startTime) {
+            requestAnimationFrame(animateOrb);
+            return;
+          }
+          const t = Math.min((now - startTime) / duration, 1);
+          const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+          const inv = 1 - ease;
+
+          const x = 2 * inv * ease * ctrlX + ease * ease * deltaX;
+          const y = 2 * inv * ease * ctrlY + ease * ease * deltaY;
+          const scale = 1.15 - 0.45 * ease;
+
+          orb.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+
+          if (t < 1) {
+            requestAnimationFrame(animateOrb);
+          } else {
+            orb.remove();
+            sound.playXpOrbHit(i);
+            grantXp(orbXp, false);
+
+            xpTargetEl.classList.remove('target-pulse');
+            void xpTargetEl.offsetWidth;
+            xpTargetEl.classList.add('target-pulse');
+          }
+        }
+
+        requestAnimationFrame(animateOrb);
+      }
+    }
+
+    function claimDropWithFlightAnimations() {
+      const car = state.pendingDrop;
+      if (!car) return;
+      state.pendingDrop = null;
+
+      const modal = document.getElementById('win-modal');
+      const sourceEl = document.getElementById('win-card-container');
+      const invTargetEl = document.getElementById('nav-inventory-pill');
+
+      const srcRect = sourceEl.getBoundingClientRect();
+      const dstRect = invTargetEl.getBoundingClientRect();
+
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+
+      const startX = srcRect.left + srcRect.width / 2;
+      const startY = srcRect.top + srcRect.height / 2;
+
+      const totalXp = calculateVehicleXp(car);
+      launchXpParticles(startX, startY, totalXp);
+
+      const meta = RARITY_META[car.rarity];
+      const clone = document.createElement('div');
+      clone.style.position = 'fixed';
+      clone.style.left = srcRect.left + 'px';
+      clone.style.top = srcRect.top + 'px';
+      clone.style.width = srcRect.width + 'px';
+      clone.style.height = srcRect.height + 'px';
+      clone.style.borderRadius = '24px';
+      clone.style.background = 'rgba(12, 16, 26, 0.96)';
+      clone.style.border = `2px solid ${meta.color}`;
+      clone.style.boxShadow = `0 20px 50px ${meta.glow}`;
+      clone.style.overflow = 'hidden';
+      clone.style.display = 'flex';
+      clone.style.flexDirection = 'column';
+      clone.style.justifyContent = 'center';
+      clone.style.alignItems = 'center';
+      clone.style.padding = '16px';
+      clone.style.zIndex = '130';
+      clone.style.willChange = 'transform, opacity';
+      clone.style.transformOrigin = 'center center';
+      clone.innerHTML = `
+        <div class="w-60 h-32 flex items-center justify-center mb-2">${generateVehicleSvg(car.rarity, meta.color)}</div>
+        <div class="text-white font-black text-base">${car.name}</div>
+        <div class="font-mono-num text-emerald-400 font-bold text-sm">${formatPrice(car)}</div>
+      `;
+      document.getElementById('fx-layer').appendChild(clone);
+
+      const endX = dstRect.left + dstRect.width / 2;
+      const endY = dstRect.top + dstRect.height / 2;
+      const deltaX = endX - startX;
+      const deltaY = endY - startY;
+      const ctrlX = deltaX * 0.35 - 100;
+      const ctrlY = Math.min(deltaY * 0.2, -120);
+
+      const flightDuration = 780;
+      const flightStart = performance.now();
+
+      function animateCardFlight(now) {
+        const t = Math.min((now - flightStart) / flightDuration, 1);
+        const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const inv = 1 - ease;
+
+        const curX = 2 * inv * ease * ctrlX + ease * ease * deltaX;
+        const curY = 2 * inv * ease * ctrlY + ease * ease * deltaY;
+        const scale = 1 - 0.91 * ease;
+        const rotate = ease * 12;
+        const opacity = t > 0.78 ? 1 - (t - 0.78) / 0.22 : 1;
+
+        clone.style.transform = `translate3d(${curX}px, ${curY}px, 0) scale(${scale}) rotate(${rotate}deg)`;
+        clone.style.opacity = opacity;
+
+        if (t < 1) {
+          requestAnimationFrame(animateCardFlight);
+        } else {
+          clone.remove();
+          sound.playInventoryLand();
+
+          const player = getCurrentPlayer();
+          player.inventory.unshift({
+            uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            carId: car.id,
+            obtainedAt: Date.now()
+          });
+          player.updatedAt = Date.now();
+          saveAllPlayers();
+          updateAllUI();
+
+          invTargetEl.classList.remove('target-pulse');
+          void invTargetEl.offsetWidth;
+          invTargetEl.classList.add('target-pulse');
+        }
+      }
+
+      requestAnimationFrame(animateCardFlight);
+    }
+
+    // =========================================================================
+    // 7. INVENTORY, LEADERBOARD & CATALOG RENDERING
+    // =========================================================================
+    function renderGarage() {
+      const player = getCurrentPlayer();
+      const grid = document.getElementById('garage-grid');
+      const emptyEl = document.getElementById('garage-empty');
+      const rarityFilter = document.getElementById('garage-filter-rarity').value;
+      const sortMode = document.getElementById('garage-sort').value;
+
+      let items = player.inventory.map(entry => ({
+        ...entry,
+        car: getVehicleById(entry.carId)
+      }));
+
+      if (rarityFilter !== 'all') {
+        items = items.filter(i => i.car.rarity === rarityFilter);
+      }
+
+      if (sortMode === 'price-desc') {
+        items.sort((a, b) => b.car.price - a.car.price);
+      } else if (sortMode === 'price-asc') {
+        items.sort((a, b) => a.car.price - b.car.price);
+      } else {
+        items.sort((a, b) => b.obtainedAt - a.obtainedAt);
+      }
+
+      if (items.length === 0) {
+        grid.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+      grid.innerHTML = items.map(item => {
+        const car = item.car;
+        const meta = RARITY_META[car.rarity];
+        return `
+          <div
+            onclick="inspectInventoryCar('${item.uid}')"
+            class="group rounded-2xl bg-slate-950/85 border overflow-hidden cursor-pointer flex flex-col justify-between transition hover:-translate-y-1"
+            style="border-color: ${meta.border}; box-shadow: inset 0 0 24px ${meta.glow};"
+          >
+            <div class="relative h-36 w-full bg-slate-900 overflow-hidden flex items-center justify-center p-2">
+              ${generateVehicleSvg(car.rarity, meta.color)}
+              <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md" style="background: ${meta.badgeBg}; color: ${meta.color}; border: 1px solid ${meta.border};">
+                ${meta.label}
+              </span>
+            </div>
+
+            <div class="p-4 pt-2.5">
+              <div class="text-[11px] font-bold text-slate-400">${car.brand}</div>
+              <h3 class="text-sm font-extrabold text-white truncate mt-0.5">${car.fullName || car.name}</h3>
+              <div class="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
+                <span class="font-mono-num text-xs font-extrabold text-emerald-400">${formatPrice(car)}</span>
+                <span class="text-[11px] text-slate-400 font-mono-num">${car.hp}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getRealPlayersLeaderboard() {
+      getCurrentPlayer();
+      const list = Object.values(state.players).map(p => {
+        const totalValue = getPlayerTotalValue(p);
+        let bestCar = null;
+        if (p.inventory && p.inventory.length > 0) {
+          bestCar = p.inventory
+            .map(i => getVehicleById(i.carId))
+            .sort((a, b) => b.price - a.price)[0];
+        }
+        return {
+          nickname: p.nickname,
+          level: p.level || 1,
+          carCount: (p.inventory || []).length,
+          totalValue,
+          bestCar,
+          isCurrent: p.nickname === state.currentNickname
+        };
+      });
+
+      list.sort((a, b) => b.totalValue - a.totalValue || b.level - a.level);
+      return list.slice(0, 100).map((entry, idx) => ({
+        ...entry,
+        rank: idx + 1
+      }));
+    }
+
+    function renderLeaderboard() {
+      const tbody = document.getElementById('leaderboard-body');
+      const query = document.getElementById('leaderboard-search').value.trim().toLowerCase();
+      const board = getRealPlayersLeaderboard();
+
+      document.getElementById('tab-lb-count').textContent = board.length;
+
+      const filtered = query
+        ? board.filter(row => row.nickname.toLowerCase().includes(query))
+        : board;
+
+      tbody.innerHTML = filtered.map(row => {
+        const isMe = row.isCurrent;
+        const rankBadge = row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : `#${row.rank}`;
+        const bestLabel = row.bestCar
+          ? `<span style="color: ${RARITY_META[row.bestCar.rarity].color}" class="font-bold">${row.bestCar.fullName || row.bestCar.name}</span>`
+          : '<span class="text-slate-500">Пустой ангар</span>';
+
+        return `
+          <tr class="${isMe ? 'bg-sky-500/15 border-l-4 border-l-sky-400' : 'hover:bg-white/[0.03]'} transition">
+            <td class="py-3.5 px-4 font-mono-num font-extrabold ${row.rank <= 3 ? 'text-amber-400 text-base' : 'text-slate-300'}">
+              ${rankBadge}
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center font-extrabold text-xs shrink-0 ${isMe ? 'bg-sky-500 text-white' : 'bg-white/10 text-slate-300'}">
+                  ${row.nickname.slice(0, 2).toUpperCase()}
+                </div>
+                <div class="font-bold text-white flex items-center gap-1.5">
+                  <span>${escapeHTML(row.nickname)}</span>
+                  ${isMe ? '<span class="px-1.5 py-0.5 text-[10px] rounded bg-sky-500 text-white font-extrabold">ВЫ</span>' : ''}
+                </div>
+              </div>
+            </td>
+            <td class="py-3.5 px-4 text-center">
+              <span class="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono-num text-xs font-bold">
+                LVL ${row.level}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 hidden sm:table-cell text-xs">
+              ${bestLabel}
+            </td>
+            <td class="py-3.5 px-4 text-center font-mono-num font-semibold text-slate-300">
+              ${row.carCount}
+            </td>
+            <td class="py-3.5 px-4 text-right font-mono-num font-extrabold text-emerald-400">
+              ${formatUSD(row.totalValue)}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderCatalog() {
+      const grid = document.getElementById('catalog-grid');
+      const filter = document.getElementById('catalog-filter').value;
+      const player = getCurrentPlayer();
+
+      document.getElementById('tab-catalog-count').textContent = VEHICLES_DB.length;
+
+      const list = filter === 'all'
+        ? [...VEHICLES_DB].sort((a, b) => b.price - a.price)
+        : VEHICLES_DB.filter(v => v.rarity === filter).sort((a, b) => b.price - a.price);
+
+      grid.innerHTML = list.map(car => {
+        const meta = RARITY_META[car.rarity];
+        const ownedCount = player.inventory.filter(i => i.carId === car.id).length;
+        return `
+          <div class="group rounded-2xl bg-slate-950/85 border overflow-hidden flex flex-col justify-between" style="border-color: ${meta.border};">
+            <div class="relative h-36 w-full bg-slate-900 overflow-hidden flex items-center justify-center p-2">
+              ${generateVehicleSvg(car.rarity, meta.color)}
+              <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase backdrop-blur-md" style="background: ${meta.badgeBg}; color: ${meta.color};">
+                ${meta.label}
+              </span>
+              ${
+                ownedCount > 0
+                  ? `<span class="absolute top-2.5 right-2.5 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/85 text-slate-950">В ангаре: ${ownedCount}</span>`
+                  : `<span class="absolute top-2.5 right-2.5 text-[10px] font-mono-num font-bold px-2 py-0.5 rounded bg-black/65 text-amber-300">+${calculateVehicleXp(car)} XP</span>`
+              }
+            </div>
+
+            <div class="p-4 pt-2.5">
+              <div class="text-[11px] font-bold text-slate-400">${car.brand}</div>
+              <h3 class="text-sm font-extrabold text-white truncate mt-0.5">${car.fullName || car.name}</h3>
+              <div class="font-mono-num text-xs font-extrabold text-emerald-400 mt-1">${formatPrice(car)}</div>
+              <div class="grid grid-cols-3 gap-1 mt-2.5 pt-2.5 border-t border-white/10 text-[10px] text-slate-400 font-mono-num">
+                <div class="truncate">${car.hp}</div>
+                <div class="text-center truncate">${car.zeroToHundred}</div>
+                <div class="text-right truncate">${car.topSpeed}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateAllUI() {
+      const player = getCurrentPlayer();
+      const totalVal = getPlayerTotalValue(player);
+      const count = player.inventory.length;
+      const board = getRealPlayersLeaderboard();
+      const me = board.find(r => r.isCurrent);
+      const myRank = me ? me.rank : 1;
+
+      document.getElementById('header-car-count').textContent = count;
+      document.getElementById('tab-garage-count').textContent = count;
+      document.getElementById('header-total-value').textContent = formatUSD(totalVal);
+      document.getElementById('subbar-value').textContent = formatUSD(totalVal);
+      document.getElementById('subbar-rank').textContent = '#' + myRank;
+
+      document.getElementById('header-nickname').textContent = player.nickname;
+      document.getElementById('header-rank-badge').textContent = 'Место #' + myRank;
+      document.getElementById('header-avatar').textContent = player.nickname.slice(0, 2).toUpperCase();
+
+      const neededXp = getXpRequiredForLevel(player.level);
+      const pct = Math.min(100, Math.round((player.xp / neededXp) * 100));
+      const remaining = Math.max(0, neededXp - player.xp);
+
+      document.getElementById('header-level').textContent = player.level;
+      document.getElementById('header-xp-cur').textContent = player.xp.toLocaleString('en-US');
+      document.getElementById('header-xp-next').textContent = neededXp.toLocaleString('en-US');
+      document.getElementById('header-xp-rem').textContent = remaining.toLocaleString('en-US') + ' XP';
+      document.getElementById('header-xp-fill').style.width = pct + '%';
+
+      let tierLabel = 'Базовый пилот';
+      let nextUnlockText = 'Средняя рулетка на LVL 10';
+      if (player.level >= 30) {
+        tierLabel = 'Легенда ангара';
+        nextUnlockText = 'Все 4 рулетки открыты!';
+      } else if (player.level >= 20) {
+        tierLabel = 'Профи коллекционер';
+        nextUnlockText = 'Лучшая рулетка на LVL 30';
+      } else if (player.level >= 10) {
+        tierLabel = 'Опытный гонщик';
+        nextUnlockText = 'Профи рулетка на LVL 20';
+      }
+      document.getElementById('header-tier-name').textContent = tierLabel;
+      document.getElementById('header-next-unlock').textContent = nextUnlockText;
+      document.getElementById('admin-bonus-cash-label').textContent = 'Бонус: ' + formatUSD(player.bonusCash || 0);
+
+      renderRouletteTabs();
+      renderGarage();
+      renderLeaderboard();
+      renderCatalog();
+    }
+
+    // =========================================================================
+    // 8. INSPECTION & ADMIN PANEL (PASSWORD: 1581)
+    // =========================================================================
+    window.inspectInventoryCar = function(uid) {
+      const player = getCurrentPlayer();
+      const entry = player.inventory.find(i => i.uid === uid);
+      if (!entry) return;
+      const car = getVehicleById(entry.carId);
+      const meta = RARITY_META[car.rarity];
+
+      const modal = document.getElementById('inspect-modal');
+      const content = document.getElementById('inspect-content');
+      content.innerHTML = `
+        <div class="text-center">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-3" style="background: ${meta.badgeBg}; color: ${meta.color};">
+            ${meta.label} • ${car.brand}
+          </span>
+          <div class="w-full h-44 rounded-2xl overflow-hidden bg-slate-950 border border-white/10 mb-3 flex items-center justify-center p-3">
+            ${generateVehicleSvg(car.rarity, meta.color)}
+          </div>
+          <h3 class="text-xl font-black text-white">${car.fullName || car.name}</h3>
+          <div class="font-mono-num text-lg font-extrabold text-emerald-400 mt-1">${formatPrice(car)}</div>
+
+          <div class="grid grid-cols-3 gap-2 my-5 bg-black/45 rounded-2xl p-3 border border-white/10 text-xs">
+            <div>
+              <div class="text-slate-400">Мощность</div>
+              <div class="font-mono-num font-bold text-white mt-0.5">${car.hp}</div>
+            </div>
+            <div class="border-x border-white/10">
+              <div class="text-slate-400">Разгон / Тип</div>
+              <div class="font-mono-num font-bold text-white mt-0.5">${car.zeroToHundred}</div>
+            </div>
+            <div>
+              <div class="text-slate-400">Макс. скор.</div>
+              <div class="font-mono-num font-bold text-white mt-0.5">${car.topSpeed}</div>
+            </div>
+          </div>
+
+          <button
+            onclick="removeSingleCar('${entry.uid}')"
+            class="w-full py-3 px-4 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/35 text-xs font-extrabold transition cursor-pointer"
+          >
+            Удалить из ангара
+          </button>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    window.removeSingleCar = function(uid) {
+      const player = getCurrentPlayer();
+      player.inventory = player.inventory.filter(i => i.uid !== uid);
+      player.updatedAt = Date.now();
+      saveAllPlayers();
+      updateAllUI();
+      const modal = document.getElementById('inspect-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    function populateAdminVehicleSelect() {
+      const sel = document.getElementById('admin-vehicle-select');
+      const sorted = [...VEHICLES_DB].sort((a, b) => b.price - a.price);
+      sel.innerHTML = sorted.map(v => `
+        <option value="${v.id}">${v.fullName || v.name} — ${formatPrice(v)}</option>
+      `).join('');
+    }
+
+    function openAdminPanel() {
+      const modal = document.getElementById('admin-panel-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    // =========================================================================
+    // 9. NAVIGATION & EVENT WIRING
+    // =========================================================================
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      document.querySelectorAll('.main-tab-btn').forEach(btn => {
+        const active = btn.dataset.tab === tabName;
+        btn.className = active
+          ? 'main-tab-btn px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white/12 text-white shadow transition cursor-pointer'
+          : 'main-tab-btn px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-400 hover:text-white transition cursor-pointer';
+      });
+
+      document.getElementById('section-garage').classList.toggle('hidden', tabName !== 'garage');
+      document.getElementById('section-leaderboard').classList.toggle('hidden', tabName !== 'leaderboard');
+      document.getElementById('section-catalog').classList.toggle('hidden', tabName !== 'catalog');
+    }
+
+    function openGuestModal() {
+      const modal = document.getElementById('guest-modal');
+      const input = document.getElementById('nickname-input');
+      input.value = state.currentNickname || '';
+
+      const existingNames = Object.keys(state.players);
+      const box = document.getElementById('saved-profiles-box');
+      const listEl = document.getElementById('saved-profiles-list');
+      if (existingNames.length > 0) {
+        box.classList.remove('hidden');
+        listEl.innerHTML = existingNames.map(name => `
+          <button type="button" data-nick="${escapeHTML(name)}" class="saved-nick-pill px-2.5 py-1 rounded-lg bg-white/5 hover:bg-sky-500/20 border border-white/10 text-xs font-semibold text-slate-200 cursor-pointer transition">
+            ${escapeHTML(name)} (LVL ${state.players[name].level || 1})
+          </button>
+        `).join('');
+        listEl.querySelectorAll('.saved-nick-pill').forEach(btn => {
+          btn.addEventListener('click', () => {
+            input.value = btn.dataset.nick;
+          });
+        });
+      } else {
+        box.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => input.focus(), 60);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAllPlayers();
+      populateAdminVehicleSelect();
+      updateAllUI();
+      populateIdleTrack();
+
+      if (!state.currentNickname) {
+        openGuestModal();
+      }
+
+      document.getElementById('guest-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const val = document.getElementById('nickname-input').value.trim();
+        if (!val) return;
+        state.currentNickname = val;
+        getCurrentPlayer();
+        saveAllPlayers();
+        updateAllUI();
+        populateIdleTrack();
+
+        const modal = document.getElementById('guest-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        sound.init();
+      });
+
+      document.getElementById('random-nick-btn').addEventListener('click', () => {
+        const prefixes = ['Stealth', 'Apex', 'Turbo', 'V12', 'Phantom', 'Hyper', 'Carbon', 'Pilot', 'Ghost', 'Koenig'];
+        const suffixes = ['B2', 'Racer', 'Driver', 'King', 'VIP', 'GT3', 'RS', 'Pro', '77', '99'];
+        const pick = prefixes[Math.floor(Math.random() * prefixes.length)] + '_' + suffixes[Math.floor(Math.random() * suffixes.length)];
+        document.getElementById('nickname-input').value = pick;
+      });
+
+      document.getElementById('edit-nick-btn').addEventListener('click', openGuestModal);
+      document.getElementById('switch-account-cta').addEventListener('click', openGuestModal);
+
+      document.getElementById('spin-btn').addEventListener('click', spinRoulette);
+      document.getElementById('claim-fly-btn').addEventListener('click', claimDropWithFlightAnimations);
+
+      document.querySelectorAll('.main-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      document.getElementById('nav-inventory-pill').addEventListener('click', () => {
+        switchTab('garage');
+        document.getElementById('section-garage').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      document.getElementById('garage-filter-rarity').addEventListener('change', renderGarage);
+      document.getElementById('garage-sort').addEventListener('change', renderGarage);
+      document.getElementById('sell-duplicates-btn').addEventListener('click', () => {
+        const player = getCurrentPlayer();
+        const seen = new Set();
+        player.inventory = player.inventory.filter(item => {
+          if (seen.has(item.carId)) return false;
+          seen.add(item.carId);
+          return true;
+        });
+        saveAllPlayers();
+        updateAllUI();
+        showToast('Дубликаты удалены из ангара');
+      });
+
+      document.getElementById('leaderboard-search').addEventListener('input', renderLeaderboard);
+      document.getElementById('catalog-filter').addEventListener('change', renderCatalog);
+
+      document.getElementById('close-inspect-btn').addEventListener('click', () => {
+        const modal = document.getElementById('inspect-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+
+      document.getElementById('sound-toggle-btn').addEventListener('click', () => {
+        sound.enabled = !sound.enabled;
+        document.getElementById('sound-on-icon').classList.toggle('hidden', !sound.enabled);
+        document.getElementById('sound-off-icon').classList.toggle('hidden', sound.enabled);
+      });
+
+      document.getElementById('open-admin-btn').addEventListener('click', () => {
+        if (state.adminUnlocked) {
+          openAdminPanel();
+          return;
+        }
+        const authModal = document.getElementById('admin-auth-modal');
+        const input = document.getElementById('admin-pass-input');
+        document.getElementById('admin-auth-error').classList.add('hidden');
+        input.value = '';
+        authModal.classList.remove('hidden');
+        authModal.classList.add('flex');
+        setTimeout(() => input.focus(), 60);
+      });
+
+      document.getElementById('close-admin-auth-btn').addEventListener('click', () => {
+        const authModal = document.getElementById('admin-auth-modal');
+        authModal.classList.add('hidden');
+        authModal.classList.remove('flex');
+      });
+
+      document.getElementById('admin-auth-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const pass = document.getElementById('admin-pass-input').value.trim();
+        if (pass === '1581') {
+          state.adminUnlocked = true;
+          const authModal = document.getElementById('admin-auth-modal');
+          authModal.classList.add('hidden');
+          authModal.classList.remove('flex');
+          openAdminPanel();
+          sound.playXpOrbHit(4);
+        } else {
+          document.getElementById('admin-auth-error').classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('close-admin-panel-btn').addEventListener('click', () => {
+        const modal = document.getElementById('admin-panel-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+
+      document.querySelectorAll('.admin-qty-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('admin-vehicle-qty').value = btn.dataset.qty;
+        });
+      });
+
+      document.getElementById('admin-give-vehicle-btn').addEventListener('click', () => {
+        const carId = document.getElementById('admin-vehicle-select').value;
+        const qty = Math.min(500, Math.max(1, parseInt(document.getElementById('admin-vehicle-qty').value, 10) || 1));
+        const car = getVehicleById(carId);
+        const player = getCurrentPlayer();
+
+        for (let i = 0; i < qty; i++) {
+          player.inventory.unshift({
+            uid: Date.now().toString(36) + '_' + i + '_' + Math.random().toString(36).slice(2, 6),
+            carId: car.id,
+            obtainedAt: Date.now()
+          });
+        }
+        player.updatedAt = Date.now();
+        saveAllPlayers();
+        updateAllUI();
+        sound.playInventoryLand();
+        showToast(`Выдано: ${car.fullName || car.name} ×${qty}`);
+      });
+
+      document.getElementById('admin-give-cash-btn').addEventListener('click', () => {
+        const amount = parseFloat(document.getElementById('admin-cash-input').value) || 0;
+        const player = getCurrentPlayer();
+        player.bonusCash = (player.bonusCash || 0) + amount;
+        player.updatedAt = Date.now();
+        saveAllPlayers();
+        updateAllUI();
+        sound.playXpOrbHit(3);
+        showToast(`К стоимости инвентаря добавлено ${formatUSD(amount)}`);
+      });
+
+      document.getElementById('admin-give-xp-btn').addEventListener('click', () => {
+        const xpVal = Math.max(1, parseInt(document.getElementById('admin-xp-input').value, 10) || 0);
+        grantXp(xpVal, true);
+        showToast(`Начислено +${xpVal.toLocaleString('en-US')} XP`);
+      });
+
+      document.getElementById('admin-set-lvl-btn').addEventListener('click', () => {
+        const targetLvl = Math.min(9999, Math.max(1, parseInt(document.getElementById('admin-lvl-input').value, 10) || 1));
+        const player = getCurrentPlayer();
+        player.level = targetLvl;
+        player.xp = 0;
+        player.updatedAt = Date.now();
+        saveAllPlayers();
+        updateAllUI();
+        sound.playLevelUp();
+        showToast(`Установлен уровень ${targetLvl}`);
+      });
+
+      document.getElementById('admin-wipe-profile-btn').addEventListener('click', () => {
+        const nick = state.currentNickname || 'Гость';
+        state.players[nick] = {
+          nickname: nick,
+          xp: 0,
+          level: 1,
+          bonusCash: 0,
+          inventory: [],
+          updatedAt: Date.now()
+        };
+        state.selectedCase = 'basic';
+        saveAllPlayers();
+        updateAllUI();
+        populateIdleTrack();
+        showToast('Профиль полностью сброшен до 1 уровня');
+      });
+    });
+  </script>
+</body>
+</html>
+```
